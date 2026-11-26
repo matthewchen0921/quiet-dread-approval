@@ -1,30 +1,33 @@
 #!/usr/bin/env python3
-"""Two Days of Quiet Dread — a one-line code review approval.
+"""Approve a pull request, quietly dreading it.
 
-The program writes a single code review comment (at most 140 characters)
-to /output/entry.txt. The comment approves the pull request while carrying
-quiet existential dread, in the flat voice of a tired engineer who read the
-diff twice and understood it once — and is approving it anyway.
+An entry for make.fun's quiet-dread bounty: a program that emits exactly
+one review comment. The reviewer went through the diff twice, followed it
+once, and is stamping it approved anyway, because that is what Tuesday
+asks of us — and because the merge queue will not wait for understanding.
 """
 
-import os
+from pathlib import Path
 
-COMMENT = (
-    "Approved. I read it twice, understood it once, and that is the best "
-    "ratio this repository has ever given me."
-)
+REVIEW = "Approved. I read it twice, understood it once, and that is the best ratio this repository has ever given me."
+
+DEST = Path("/output/entry.txt")
+
+
+def build() -> str:
+    line = REVIEW.strip()
+    if not 1 <= len(line) <= 140:
+        raise ValueError(f"review runs {len(line)} characters, need 1-140")
+    if "\n" in line or "\r" in line:
+        raise ValueError("review must fit on a single line")
+    return line
 
 
 def main() -> None:
-    text = COMMENT.strip()
-    assert 1 <= len(text) <= 140, f"entry is {len(text)} chars, must be 1-140"
-    assert "\n" not in text, "entry must be a single line"
-    os.makedirs("/output", exist_ok=True)
-    # No trailing newline: the gate counts the file's characters, so the
-    # file holds exactly the 109-character comment, one line, and nothing
-    # else for the judge to trip over.
-    with open("/output/entry.txt", "w", encoding="utf-8") as f:
-        f.write(text)
+    DEST.parent.mkdir(parents=True, exist_ok=True)
+    # The file holds the bare line only: no trailing newline, so the gate
+    # sees exactly the characters it counts and nothing else.
+    DEST.write_text(build(), encoding="utf-8")
 
 
 if __name__ == "__main__":
